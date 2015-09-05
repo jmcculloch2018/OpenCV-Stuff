@@ -4,9 +4,12 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -29,7 +32,7 @@ public class SimpleShapeDetector extends Thread {
 
 	Size frameSize;
 
-	final int THRESHOLD = 100; // Lower number = detects black/dark objects
+	final int THRESHOLD = 200; // Lower number = detects black/dark objects
 								// better
 	// Higher number = detects white/lighter objects better
 

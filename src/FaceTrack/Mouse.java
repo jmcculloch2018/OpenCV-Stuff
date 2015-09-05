@@ -43,12 +43,15 @@ public class Mouse extends Thread implements MouseListener, MouseMotionListener 
 		Point mouseLoc = new Point(e.getX(), e.getY());
 
 		for (TrackedFace cur : feedManager.trackedFaces) {
+			cur.setSelection(false);
+		}
+
+		for (TrackedFace cur : feedManager.trackedFaces) {
 
 			if (cur.isInside(mouseLoc)) {
 				cur.setSelection(true);
 				System.out.println("select");
-			} else {
-				cur.setSelection(false);
+				break;
 			}
 		}
 	}

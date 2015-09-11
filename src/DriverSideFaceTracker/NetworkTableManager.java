@@ -3,6 +3,10 @@ package DriverSideFaceTracker;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 
+import edu.wpi.first.wpilibj.networktables.NetworkTable;
+import edu.wpi.first.wpilibj.tables.ITable;
+import edu.wpi.first.wpilibj.tables.ITableListener;
+
 public class NetworkTableManager implements ITableListener {
 	
 	private Mat latestImage;
@@ -11,8 +15,20 @@ public class NetworkTableManager implements ITableListener {
 	
 	private Size imageSize;
 	
+	private NetworkTable netTable;
+	
+	public NetworkTableManager() {
+		NetworkTable.setClientMode();
+		NetworkTable.setIPAddress("00.000.0"); //TODO: Set IP
+		netTable = NetworkTable.getTable("_-xXx$#@TW0L361F0URQU17@#$xXx-_"); //TODO: set a real name
+		
+		netTable.addTableListener(this);
+	}
+	
 	public void valueChanged(ITable table, String string, Object recieved, boolean hasChanged) {
-		if (hasChanged) {
+		
+		if (hasChanged && string.equals("camera-feed")) {
+			
 			latestImage = (Mat) recieved;
 			
 			if (imageSize == null) {
@@ -38,7 +54,8 @@ public class NetworkTableManager implements ITableListener {
 
 	public void write(double forwardError, double rightError,
 			double clockwiseError) {
-		//TODO: write to table
+		
+		netTable.putValue("error-values", new double[] {forwardError, rightError, clockwiseError});
 		
 	}
 }

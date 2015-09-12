@@ -7,8 +7,6 @@ import org.opencv.core.Rect;
 import org.opencv.core.Size;
 import org.opencv.objdetect.CascadeClassifier;
 
-import Util.Webcam;
-
 public class TrackingManager extends Thread {
 
 	private Rect[] locations;
@@ -84,6 +82,14 @@ public class TrackingManager extends Thread {
 	
 	public Size getImageSize() {
 		return tableManager.getImageSize();
+	}
+	
+	public Mat getLatestImage() {
+		return tableManager.getLatestImage();
+	}
+	
+	public void writeZeros() {
+		writeToTable(0, 0, 0);
 	}
 
 	public void writeToTable(double forwardError, double rightError,

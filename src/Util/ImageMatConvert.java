@@ -41,17 +41,13 @@ public class ImageMatConvert {
 	public static Mat readImage(String name) {
         URL url = name.getClass().getResource(name);
 
-        // make sure the file exists
         if (url == null) {
             System.out.println("ResourceNotFound: " + name);
             return new Mat();
         }
 
         String path = url.getPath();
-
-        // not sure why we (sometimes; while running unpacked from the IDE) end 
-        // up with the authority-part of the path (a single slash) as prefix,
-        // ...anyways: Highgui.imread can't handle it, so that's why.
+        
         if (path.startsWith("/")) {
             path = path.substring(1);
         }

@@ -25,8 +25,7 @@ public class FaceTrack implements SequencedItem {
 		
 		networkTableManager.write(camera.getMat());
 		
-		
-		double rightError, forwardError, clockwiseError;
+		double rightError = 0, forwardError = 0, clockwiseError = 0;
 
 		double[] latestErrors = networkTableManager.getLatestErrors();
 		
@@ -45,7 +44,7 @@ public class FaceTrack implements SequencedItem {
 
 	@Override
 	public void finish() {
-		
+		Robot.drive.warlordDrive(0, 0, 0);
 	}
 
 }

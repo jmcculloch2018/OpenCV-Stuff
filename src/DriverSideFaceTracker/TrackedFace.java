@@ -217,7 +217,5 @@ public class TrackedFace {
 		
 		location.x += aproxDeltaX;
 		location.y += aproxDeltaY;
-		
-		System.out.println("Guess: " + location.x + ", " + location.y);
 	}
 }

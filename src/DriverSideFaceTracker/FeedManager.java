@@ -4,6 +4,9 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
@@ -12,7 +15,6 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import Util.ImageMatConvert;
-import Util.Webcam;
 
 public class FeedManager extends Thread {
 
@@ -32,6 +34,8 @@ public class FeedManager extends Thread {
 
 	Rect targetPoint;
 
+	JPanel panel;
+
 	ArrayList<TrackedFace> trackedFaces;
 
 	public static void main(String[] args) {
@@ -42,90 +46,59 @@ public class FeedManager extends Thread {
 
 		trackedFaces = new ArrayList<TrackedFace>();
 
-		trackingManager = new TrackingManager(mode, sensitivity,
-				trackRate);
+		trackingManager = new TrackingManager(mode, sensitivity, trackRate);
 
 		trackingManager.start();
 
-		targetPoint = new Rect((int) (trackingManager.getImageSize().width/2),
-				(int) (trackingManager.getImageSize().height/2), 25, 25);
+		targetPoint = new Rect(
+				(int) (trackingManager.getImageSize().width / 2),
+				(int) (trackingManager.getImageSize().height / 2), 25, 25);
+
+		setUpFrame();
+
+		start();
+	}
+
+	private void setUpFrame() {
+
+		JFrame frame = new JFrame();
+
+		panel = new JPanel();
+
+		panel.setSize((int) trackingManager.getImageSize().width,
+				(int) trackingManager.getImageSize().height);
+
+		frame.add(panel);
 
 		Mouse m = new Mouse(this);
 
-		start();
+		panel.addMouseListener(m);
+		panel.addMouseMotionListener(m);
+
+		frame.pack();
+
+		frame.setVisible(true);
 	}
 
 	public void run() {
 
 		while (true) {
 
+			Mat feed = trackingManager.getLatestImage();
+
 			if (trackingManager.hasNewLocations()) {
 
-				Rect[] locations = trackingManager.getLocations();
+				matchFaces();
 
-				for (TrackedFace cur : trackedFaces) {
-					cur.prepareForMatching();
-				}
+				removeMissingFaces();
 
-				for (Rect cur : locations) {
-					TrackedFace match = findMatchingFace(cur);
+				adjustToTarget(feed);
 
-					if (match == null) {
-						trackedFaces.add(new TrackedFace(cur.x, cur.y,
-								cur.width, cur.height));
-					}
-				}
+				drawCrosshair(feed);
 
-				for (int pos = 0; pos < trackedFaces.size(); pos++) {
-					TrackedFace cur = trackedFaces.get(pos);
-					if (!cur.hasBeenMatchedThisFrame()) {
-						if (cur.disposeYet()) {
-							trackedFaces.remove(cur);
-							pos--;
-						} else {
-							// cur.attemptToFollow();
-						}
-					}
-				}
-
-				for (TrackedFace cur : trackedFaces) {
-					
-					//TODO: draw Rects on image
-
-					if (cur.isSelected()) {
-						centerFace(cur);
-					}
-				}
-				
-				/*
-				 * 
-				 * TODO: Draw "Center" point
-
-				Imgproc.line(feed, new Point(targetPoint.x
-						- (targetPoint.width / 2), targetPoint.y),
-						new Point(targetPoint.x + (targetPoint.width / 2),
-								targetPoint.y), new Scalar(255, 0, 0));
-
-				Imgproc.line(feed, new Point(targetPoint.x, targetPoint.y
-						- (targetPoint.height / 2)), new Point(targetPoint.x,
-						targetPoint.y + (targetPoint.height / 2)), new Scalar(
-						255, 0, 0)); 
-						
-						*/
-
-			} else {
-				System.out.println("Waiting For Tracking Thread...");
 			}
-			
-			//TODO: convet Mat to image
 
-			//BufferedImage bufferedImage = ImageMatConvert.matToImage(feed);
-			
-			//TODO: draw image
-
-//			Graphics g = panel.getGraphics();
-//
-//			g.drawImage(bufferedImage, 0, 0, null);
+			writeToPanel(feed);
 
 			try {
 				Thread.sleep(1000 / frameRate);
@@ -133,6 +106,78 @@ public class FeedManager extends Thread {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	private void removeMissingFaces() {
+		for (int pos = 0; pos < trackedFaces.size(); pos++) {
+			TrackedFace cur = trackedFaces.get(pos);
+			if (!cur.hasBeenMatchedThisFrame()) {
+				if (cur.disposeYet()) {
+					trackedFaces.remove(cur);
+					pos--;
+				} else {
+					// cur.attemptToFollow();
+				}
+			}
+		}
+	}
+
+	private void matchFaces() {
+		for (TrackedFace cur : trackedFaces) {
+			cur.prepareForMatching();
+		}
+
+		Rect[] locations = trackingManager.getLocations();
+
+		for (Rect cur : locations) {
+			TrackedFace match = findMatchingFace(cur);
+
+			if (match == null) {
+				trackedFaces.add(new TrackedFace(cur.x, cur.y, cur.width,
+						cur.height));
+			}
+		}
+	}
+
+	private void adjustToTarget(Mat feed) {
+		boolean hasTarget = false;
+
+		for (TrackedFace cur : trackedFaces) {
+
+			cur.display(feed);
+
+			if (cur.isSelected()) {
+				hasTarget = true;
+				centerFace(cur);
+			}
+		}
+
+		if (!hasTarget) {
+			trackingManager.writeZeros();
+		}
+	}
+
+	private void writeToPanel(Mat feed) {
+
+		BufferedImage bufferedImage = ImageMatConvert.matToImage(feed);
+
+		Graphics g = panel.getGraphics();
+
+		g.drawImage(bufferedImage, 0, 0, null);
+
+	}
+
+	private void drawCrosshair(Mat drawToThis) {
+
+		Imgproc.line(drawToThis, new Point(targetPoint.x
+				- (targetPoint.width / 2), targetPoint.y), new Point(
+				targetPoint.x + (targetPoint.width / 2), targetPoint.y),
+				new Scalar(255, 0, 0));
+
+		Imgproc.line(drawToThis, new Point(targetPoint.x, targetPoint.y
+				- (targetPoint.height / 2)), new Point(targetPoint.x,
+				targetPoint.y + (targetPoint.height / 2)),
+				new Scalar(255, 0, 0));
 	}
 
 	private void centerFace(TrackedFace target) {
@@ -164,7 +209,7 @@ public class FeedManager extends Thread {
 				rightError = rightError / Math.abs(rightError);
 			}
 		}
-		
+
 		trackingManager.writeToTable(forwardError, rightError, clockwiseError);
 
 		System.out.println("Forward: " + forwardError + " Right: " + rightError

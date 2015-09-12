@@ -50,7 +50,6 @@ public class Mouse extends Thread implements MouseListener, MouseMotionListener 
 
 			if (cur.isInside(mouseLoc)) {
 				cur.setSelection(true);
-				System.out.println("select");
 				break;
 			}
 		}

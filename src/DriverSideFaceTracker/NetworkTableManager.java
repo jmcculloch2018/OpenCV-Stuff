@@ -22,6 +22,8 @@ public class NetworkTableManager implements ITableListener {
 		NetworkTable.setIPAddress("00.000.0"); // TODO: Set IP
 		netTable = NetworkTable.getTable("_-xXx$#@TW0L361F0URQU17@#$xXx-_");
 		// TODO: set a real name
+		
+		netTable.putBoolean("driver-ready", true);
 
 		netTable.addTableListener(this);
 	}

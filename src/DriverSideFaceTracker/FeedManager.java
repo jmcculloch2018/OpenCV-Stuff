@@ -18,25 +18,23 @@ import Util.ImageMatConvert;
 
 public class FeedManager extends Thread {
 
-	int frameRate = 60, trackRate = 30;
+	private final double frameRate = 60, trackRate = 30;
 
-	double sensitivity = 1.15;
+	private final double sensitivity = 1.15;
 
-	String mode = "haarcascades/haarcascade_frontalface_alt.xml";
+	private final String mode = "haarcascades/haarcascade_frontalface_alt.xml";
 
-	TrackingManager trackingManager;
+	private final TrackingManager trackingManager;
 
-	long time = 0;
+	private final boolean USE_X_FOR_ROTATE = false;
 
-	int saveCount = 0;
+	private Rect targetPoint;
 
-	final boolean USE_X_FOR_ROTATE = false;
+	private JPanel panel;
 
-	Rect targetPoint;
+	private double sleepTime;
 
-	JPanel panel;
-
-	ArrayList<TrackedFace> trackedFaces;
+	private final ArrayList<TrackedFace> trackedFaces;
 
 	public static void main(String[] args) {
 		new FeedManager();
@@ -50,9 +48,11 @@ public class FeedManager extends Thread {
 
 		trackingManager.start();
 
-		targetPoint = new Rect(
+		setTargetPoint(new Rect(
 				(int) (trackingManager.getImageSize().width / 2),
-				(int) (trackingManager.getImageSize().height / 2), 25, 25);
+				(int) (trackingManager.getImageSize().height / 2), 25, 25));
+
+		sleepTime = 1000 / frameRate;
 
 		setUpFrame();
 
@@ -84,6 +84,8 @@ public class FeedManager extends Thread {
 
 		while (true) {
 
+			long cycleTime = System.nanoTime();
+
 			Mat feed = trackingManager.getLatestImage();
 
 			if (trackingManager.hasNewLocations()) {
@@ -100,8 +102,10 @@ public class FeedManager extends Thread {
 
 			writeToPanel(feed);
 
+			cycleTime = System.nanoTime() - cycleTime;
+
 			try {
-				Thread.sleep(1000 / frameRate);
+				Thread.sleep((long) (sleepTime - ((double) cycleTime / 1000000)));
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -109,11 +113,11 @@ public class FeedManager extends Thread {
 	}
 
 	private void removeMissingFaces() {
-		for (int pos = 0; pos < trackedFaces.size(); pos++) {
-			TrackedFace cur = trackedFaces.get(pos);
+		for (int pos = 0; pos < getTrackedFaces().size(); pos++) {
+			TrackedFace cur = getTrackedFaces().get(pos);
 			if (!cur.hasBeenMatchedThisFrame()) {
 				if (cur.disposeYet()) {
-					trackedFaces.remove(cur);
+					getTrackedFaces().remove(cur);
 					pos--;
 				} else {
 					// cur.attemptToFollow();
@@ -123,7 +127,7 @@ public class FeedManager extends Thread {
 	}
 
 	private void matchFaces() {
-		for (TrackedFace cur : trackedFaces) {
+		for (TrackedFace cur : getTrackedFaces()) {
 			cur.prepareForMatching();
 		}
 
@@ -133,8 +137,8 @@ public class FeedManager extends Thread {
 			TrackedFace match = findMatchingFace(cur);
 
 			if (match == null) {
-				trackedFaces.add(new TrackedFace(cur.x, cur.y, cur.width,
-						cur.height));
+				getTrackedFaces().add(
+						new TrackedFace(cur.x, cur.y, cur.width, cur.height));
 			}
 		}
 	}
@@ -142,7 +146,7 @@ public class FeedManager extends Thread {
 	private void adjustToTarget(Mat feed) {
 		boolean hasTarget = false;
 
-		for (TrackedFace cur : trackedFaces) {
+		for (TrackedFace cur : getTrackedFaces()) {
 
 			cur.display(feed);
 
@@ -169,15 +173,15 @@ public class FeedManager extends Thread {
 
 	private void drawCrosshair(Mat drawToThis) {
 
-		Imgproc.line(drawToThis, new Point(targetPoint.x
-				- (targetPoint.width / 2), targetPoint.y), new Point(
-				targetPoint.x + (targetPoint.width / 2), targetPoint.y),
-				new Scalar(255, 0, 0));
+		Imgproc.line(drawToThis, new Point(getTargetPoint().x
+				- (getTargetPoint().width / 2), getTargetPoint().y), new Point(
+				getTargetPoint().x + (getTargetPoint().width / 2),
+				getTargetPoint().y), new Scalar(255, 0, 0));
 
-		Imgproc.line(drawToThis, new Point(targetPoint.x, targetPoint.y
-				- (targetPoint.height / 2)), new Point(targetPoint.x,
-				targetPoint.y + (targetPoint.height / 2)),
-				new Scalar(255, 0, 0));
+		Imgproc.line(drawToThis, new Point(getTargetPoint().x,
+				getTargetPoint().y - (getTargetPoint().height / 2)), new Point(
+				getTargetPoint().x, getTargetPoint().y
+						+ (getTargetPoint().height / 2)), new Scalar(255, 0, 0));
 	}
 
 	private void centerFace(TrackedFace target) {
@@ -186,7 +190,7 @@ public class FeedManager extends Thread {
 
 		Size imageSize = trackingManager.getImageSize();
 
-		Point centerPoint = new Point(targetPoint.x, targetPoint.y);
+		Point centerPoint = new Point(getTargetPoint().x, getTargetPoint().y);
 
 		double forwardError = 0.0, rightError = 0.0, clockwiseError = 0.0;
 
@@ -217,12 +221,24 @@ public class FeedManager extends Thread {
 	}
 
 	private TrackedFace findMatchingFace(Rect face) {
-		for (TrackedFace cur : trackedFaces) {
+		for (TrackedFace cur : getTrackedFaces()) {
 			if (cur.isMatch(face)) {
 				cur.match(face);
 				return cur;
 			}
 		}
 		return null;
+	}
+
+	public ArrayList<TrackedFace> getTrackedFaces() {
+		return trackedFaces;
+	}
+
+	public Rect getTargetPoint() {
+		return targetPoint;
+	}
+
+	private void setTargetPoint(Rect targetPoint) {
+		this.targetPoint = targetPoint;
 	}
 }

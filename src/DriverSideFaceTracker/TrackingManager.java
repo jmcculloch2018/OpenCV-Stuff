@@ -17,12 +17,11 @@ public class TrackingManager extends Thread {
 
 	private double sensitivity;
 
-	private int sleepTime;
-	
+	private double sleepTime;
+
 	private boolean hasNewLocations;
 
-	public TrackingManager(String mode, double sensitivity,
-			int trackRate) {
+	public TrackingManager(String mode, double sensitivity, double trackRate) {
 
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
@@ -49,6 +48,8 @@ public class TrackingManager extends Thread {
 
 		while (true) {
 
+			long cycleTime = System.nanoTime();
+
 			if (tableManager.hasNewImage()) {
 
 				Mat image = tableManager.getLatestImage();
@@ -59,35 +60,37 @@ public class TrackingManager extends Thread {
 								9999));
 
 				locations = faceDetections.toArray();
-				
+
 				hasNewLocations = true;
 			}
 
+			cycleTime = System.nanoTime() - cycleTime;
+
 			try {
-				Thread.sleep(sleepTime);
+				Thread.sleep((long) (sleepTime - ((double) cycleTime / 1000000)));
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
 	}
-	
+
 	public boolean hasNewLocations() {
 		return hasNewLocations;
 	}
-	
+
 	public Rect[] getLocations() {
 		hasNewLocations = false;
 		return locations;
 	}
-	
+
 	public Size getImageSize() {
 		return tableManager.getImageSize();
 	}
-	
+
 	public Mat getLatestImage() {
 		return tableManager.getLatestImage();
 	}
-	
+
 	public void writeZeros() {
 		writeToTable(0, 0, 0);
 	}
@@ -95,6 +98,6 @@ public class TrackingManager extends Thread {
 	public void writeToTable(double forwardError, double rightError,
 			double clockwiseError) {
 		tableManager.write(forwardError, rightError, clockwiseError);
-		
+
 	}
 }

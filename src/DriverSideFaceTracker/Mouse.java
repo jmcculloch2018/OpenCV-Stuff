@@ -9,13 +9,13 @@ import org.opencv.core.Rect;
 
 public class Mouse extends Thread implements MouseListener, MouseMotionListener {
 
-	FeedManager feedManager;
+	private final FeedManager feedManager;
 
-	Rect targetPoint;
+	private final Rect targetPoint;
 
 	public Mouse(FeedManager fM) {
 		feedManager = fM;
-		targetPoint = fM.targetPoint;
+		targetPoint = fM.getTargetPoint();
 	}
 
 	public void mouseDragged(MouseEvent arg0) {
@@ -42,11 +42,11 @@ public class Mouse extends Thread implements MouseListener, MouseMotionListener 
 
 		Point mouseLoc = new Point(e.getX(), e.getY());
 
-		for (TrackedFace cur : feedManager.trackedFaces) {
+		for (TrackedFace cur : feedManager.getTrackedFaces()) {
 			cur.setSelection(false);
 		}
 
-		for (TrackedFace cur : feedManager.trackedFaces) {
+		for (TrackedFace cur : feedManager.getTrackedFaces()) {
 
 			if (cur.isInside(mouseLoc)) {
 				cur.setSelection(true);

@@ -29,11 +29,14 @@ public class NetworkTableManager implements ITableListener {
 	}
 
 	public void write(Mat image) {
-
 		netTable.putValue("camera-feed", image);
 	}
 
 	public double[] getLatestErrors() {
 		return latestErrors;
+	}
+
+	public boolean establishedConnection() {
+		return netTable.getBoolean("driver-ready");
 	}
 }

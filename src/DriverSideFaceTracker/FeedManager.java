@@ -19,21 +19,15 @@ import Util.ImageMatConvert;
 public class FeedManager extends Thread {
 
 	private final double frameRate = 60, trackRate = 30;
-
+	private final boolean trackAllFaces = true;
 	private final double sensitivity = 1.15;
-
 	private final String mode = "haarcascades/haarcascade_frontalface_alt.xml";
-
-	private final TrackingManager trackingManager;
-
 	private final boolean USE_X_FOR_ROTATE = false;
 
+	private final TrackingManager trackingManager;
 	private Rect targetPoint;
-
 	private JPanel panel;
-
 	private double sleepTime;
-
 	private final ArrayList<TrackedFace> trackedFaces;
 
 	public static void main(String[] args) {
@@ -127,7 +121,19 @@ public class FeedManager extends Thread {
 	}
 
 	private void matchFaces() {
-		for (TrackedFace cur : getTrackedFaces()) {
+		for (int pos = 0; pos < trackedFaces.size(); pos++) {
+			
+			TrackedFace cur = trackedFaces.get(pos);
+			
+			if (!trackAllFaces) {
+				if (!cur.isSelected()) {
+					
+					trackedFaces.remove(pos);
+					pos--;
+					continue;
+				}
+			}
+			
 			cur.prepareForMatching();
 		}
 

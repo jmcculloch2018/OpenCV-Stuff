@@ -7,13 +7,13 @@ import edu.wpi.first.wpilibj.tables.ITable;
 import edu.wpi.first.wpilibj.tables.ITableListener;
 
 public class NetworkTableManager implements ITableListener {
+	
+	private final NetworkTable netTable;
 
 	private double[] latestErrors;
 
-	private NetworkTable netTable;
-
 	public NetworkTableManager() {
-		netTable = NetworkTable.getTable("_-xXx$#@TW0L361F0URQU17@#$xXx-_");
+		netTable = NetworkTable.getTable("table");
 		// TODO: set a real name
 
 		netTable.addTableListener(this);

@@ -10,17 +10,14 @@ import edu.wpi.first.wpilibj.tables.ITableListener;
 public class NetworkTableManager implements ITableListener {
 
 	private Mat latestImage;
-
 	private boolean isNew;
-
 	private Size imageSize;
-
 	private NetworkTable netTable;
 
 	public NetworkTableManager() {
 		NetworkTable.setClientMode();
 		NetworkTable.setIPAddress("00.000.0"); // TODO: Set IP
-		netTable = NetworkTable.getTable("_-xXx$#@TW0L361F0URQU17@#$xXx-_");
+		netTable = NetworkTable.getTable("table");
 		// TODO: set a real name
 		
 		netTable.putBoolean("driver-ready", true);

@@ -14,28 +14,20 @@ public class TrackedFace {
 	private Point location;
 	private Size size;
 
-	private ArrayList<Double> previousMovements;
-	private ArrayList<Size> previousSizeChanges;
-	
-	private ArrayList<Point> previousLocations;
+	private final ArrayList<Double> previousMovements;
+	private final ArrayList<Size> previousSizeChanges;	
+	private final ArrayList<Point> previousLocations;
 
 	private boolean selected;
-
 	private boolean matchedThisFrame;
-	
 	private int framesSinceMatch;
-	
+		
 	private static final int disposeAfterFrames = 30;
-
 	private static final int BUFFER_SIZE = 3;
-
 	private static final double minMovement = 20;
 	private static final Size minSizeChange = new Size(15, 15);
-
 	private static final double TOLERANCE = 2.5;
 	
-	
-
 	public TrackedFace(int x, int y, int width, int height) {
 		this(new Point(x, y), new Size(width, height));
 	}

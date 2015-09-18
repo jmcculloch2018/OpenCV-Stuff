@@ -8,17 +8,13 @@ import org.opencv.core.Size;
 import org.opencv.objdetect.CascadeClassifier;
 
 public class TrackingManager extends Thread {
+	
+	private final CascadeClassifier objectDetector;
+	private final NetworkTableManager tableManager;
+	private final double sensitivity;
+	private final double sleepTime;
 
 	private Rect[] locations;
-
-	private CascadeClassifier objectDetector;
-
-	private NetworkTableManager tableManager;
-
-	private double sensitivity;
-
-	private double sleepTime;
-
 	private boolean hasNewLocations;
 
 	public TrackingManager(String mode, double sensitivity, double trackRate) {

@@ -7,11 +7,9 @@ import Util.Webcam;
 
 public class FaceTrack implements SequencedItem {
 
-	private double duration;
-
-	private NetworkTableManager networkTableManager;
-
-	private Webcam camera;
+	private final double duration;
+	private final NetworkTableManager networkTableManager;
+	private final Webcam camera;
 
 	public FaceTrack(double duration) {
 		this.duration = duration;

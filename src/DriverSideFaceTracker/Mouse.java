@@ -10,7 +10,6 @@ import org.opencv.core.Rect;
 public class Mouse extends Thread implements MouseListener, MouseMotionListener {
 
 	private final FeedManager feedManager;
-
 	private final Rect targetPoint;
 
 	public Mouse(FeedManager fM) {

@@ -10,5 +10,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/FRC Libs"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JavaORC"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Tess4J"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

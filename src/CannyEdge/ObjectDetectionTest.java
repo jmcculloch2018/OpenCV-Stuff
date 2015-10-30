@@ -13,7 +13,7 @@ import Util.Webcam;
 
 public class ObjectDetectionTest extends Thread {
 
-	double lowThreshold = 75, ratio = 3;
+	double lowThreshold = 150, ratio = 2;
 
 	Webcam camera;
 

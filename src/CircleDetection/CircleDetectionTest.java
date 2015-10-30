@@ -3,6 +3,7 @@ package CircleDetection;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -15,9 +16,11 @@ import Util.Webcam;
 
 public class CircleDetectionTest extends Thread {
 
-	Webcam camera;
+	public static Webcam camera;
 
 	CircleDetectionPanel panel;
+
+	public static Mat source;
 
 	public static void main(String[] args) {
 		new CircleDetectionTest();
@@ -34,6 +37,10 @@ public class CircleDetectionTest extends Thread {
 		panel = new CircleDetectionPanel((int) cameraSize.width,
 				(int) cameraSize.height, "Circle Detector");
 
+		DetectionThread GCTricker = new DetectionThread();
+
+		GCTricker.start();
+
 		start();
 	}
 
@@ -41,32 +48,31 @@ public class CircleDetectionTest extends Thread {
 
 		while (true) {
 
-			Mat source = camera.getMat();
+			source = camera.getMat();
 
 			BufferedImage sourceImg = ImageMatConvert.matToImage(source);
 
-			Mat grayscale = new Mat(source.rows(), source.cols(),
-					CvType.CV_8UC1);
-
-			Imgproc.cvtColor(source, grayscale, Imgproc.COLOR_RGB2GRAY);
-
-			Mat circles = new Mat();
-
-			Imgproc.HoughCircles(grayscale, circles,
-					Imgproc.CV_HOUGH_GRADIENT, 1, 25, 200, 100, 0, 0);
+			Graphics imageG = sourceImg.getGraphics();
 
 			Graphics g = panel.getGraphics();
 
-			g.drawImage(sourceImg, 0, 0, null);
-
 			g.setColor(Color.GREEN);
 
-			for (int i = 0; i < circles.cols(); i++) {
-				double[] circle = circles.get(0, i);
+			double[] circle = DetectionThread.getBestCircle();
 
-				g.drawOval((int) circle[0] - (int) circle[2], (int) circle[1]
-						- (int) circle[2], (int) circle[2] * 2,
+			if (circle != null) {
+
+				imageG.drawOval((int) circle[0] - (int) circle[2],
+						(int) circle[1] - (int) circle[2], (int) circle[2] * 2,
 						(int) circle[2] * 2);
+			}
+
+			g.drawImage(sourceImg, 0, 0, null);
+
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
 		}
 	}

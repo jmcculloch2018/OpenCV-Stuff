@@ -1,5 +1,7 @@
 package CannyEdge;
 
+import java.awt.Dimension;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -14,6 +16,8 @@ public class CannyEdgePanel extends JPanel {
 		JFrame frame = new JFrame(frameName);
 
 		frame.add(this);
+		
+		this.setPreferredSize(new Dimension(width, height));
 
 		frame.pack();
 

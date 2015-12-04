@@ -5,8 +5,6 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import javafx.scene.shape.Circle;
-
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
@@ -15,9 +13,19 @@ import Util.ImageMatConvert;
 
 public class DetectionThread extends Thread {
 
-	public static Mat circles;
+	private CameraFeedThread feedThread;
 
-	private static double[] bestCircle;
+	private Mat circles;
+
+	private Circle bestCircle;
+
+	private Circle[] circlesFound;
+
+	final private double MAX_SCORE = .4;
+
+	public DetectionThread(CameraFeedThread feedThread) {
+		this.feedThread = feedThread;
+	}
 
 	public void run() {
 
@@ -25,7 +33,7 @@ public class DetectionThread extends Thread {
 
 		while (true) {
 
-			Mat source = CircleDetectionTest.source;
+			Mat source = feedThread.getLatestFeed();
 
 			if (source != null) {
 
@@ -35,20 +43,31 @@ public class DetectionThread extends Thread {
 				Imgproc.cvtColor(source, grayscale, Imgproc.COLOR_RGB2GRAY);
 
 				Imgproc.HoughCircles(grayscale, circles,
-						Imgproc.CV_HOUGH_GRADIENT, 1, 50, 300, 2, 5, 100);
+						Imgproc.CV_HOUGH_GRADIENT, 25, 1, 300, 2, 5, 250);
 
-				double[][] circlesFound = new double[circles.cols()][3];
+				Circle.updateFeed(source);
 
-				for (int i = 0; i < circlesFound.length; i++) {
-					circlesFound[i] = circles.get(0, i);
+				circlesFound = new Circle[circles.cols()];
+
+				for (int i = 0; i < circles.cols(); i++) {
+
+					double[] curCircle = circles.get(0, i);
+
+					circlesFound[i] = new Circle((int) curCircle[0],
+							(int) curCircle[1], (int) curCircle[2]);
+
 				}
 
-				bestCircle = findBestMatch(source, circlesFound, Color.YELLOW);
+				if (circlesFound.length != 0) {
+					bestCircle = findBestMatch(circlesFound, Color.YELLOW, 500);
+				} else {
+					bestCircle = null;
+				}
 
 			}
 
 			try {
-				Thread.sleep(0);
+				Thread.sleep(50);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -56,76 +75,60 @@ public class DetectionThread extends Thread {
 		}
 	}
 
-	public static double[] getBestCircle() {
+	public Circle getBestCircle() {
 		return bestCircle;
 	}
 
-	private double[] findBestMatch(Mat rawFeed, double[][] circles, Color c) {
+	private Circle findBestMatch(Circle[] circles, Color c, int cycles) {
 
-		int cycle = 0;
+		float[] HSBValues = new float[3];
 
-		while (circles.length > 1) {
-			circles = filterAtLevel(rawFeed, circles, cycle, c);
+		Color.RGBtoHSB((int) c.getRed(), (int) c.getGreen(), (int) c.getBlue(),
+				HSBValues);
+
+		System.out.println("Goal: " + HSBValues[0] + ", " + HSBValues[1] + ", "
+				+ HSBValues[2]);
+
+		double targetHue = HSBValues[0];
+
+		double bestScore = colorDifference(circles[0].getAvgColor(cycles),
+				targetHue);
+		Circle bestCircle = circles[0];
+
+		for (int i = 1; i < circles.length; i++) {
+			double curScore = colorDifference(circles[i].getAvgColor(cycles),
+					targetHue);
+
+			if (curScore < bestScore) {
+				bestScore = curScore;
+				bestCircle = circles[i];
+
+			}
 		}
 
-		if (circles.length > 0) {
-			return circles[0];
+		System.out.println("Best score: " + bestScore);
+
+		if (bestScore < MAX_SCORE) {
+			return bestCircle;
 		} else {
 			return null;
 		}
-
 	}
 
-	private double[][] filterAtLevel(Mat rawFeed, double[][] circlesFound,
-			int cycle, Color c) {
+	private double colorDifference(double hue, double targetHue) {
 
-		ArrayList<double[]> passedCircles = new ArrayList<double[]>();
+		System.out.println("Hue: " + hue);
 
-		for (int curCircle = 0; curCircle < circlesFound.length; curCircle++) {
-
-			int centerX = (int) (circlesFound[curCircle][0]);
-			int centerY = (int) (circlesFound[curCircle][1]);
-			
-			System.out.println("Circle " + curCircle + " being test at cycle " + cycle);
-
-			for (int i = 0; i < cycle; i++) {
-
-				double[] color = rawFeed.get(centerX + i, centerY);
-
-				if (isMatch(color, c)) {
-					passedCircles.add(circlesFound[curCircle]);
-				}
-
-			}
+		if (hue < 0) {
+			return Integer.MAX_VALUE;
 		}
 
-		Object[] toCast = passedCircles.toArray();
+		System.out.println("Targ Hue: " + targetHue);
 
-		double[][] toReturn = new double[passedCircles.size()][3];
-
-		for (int i = 0; i < toCast.length; i++) {
-			toReturn[i] = (double[]) toCast[i];
-		}
-
-		return toReturn;
+		return Math.abs(hue - targetHue);
 	}
 
-	private boolean isMatch(double[] rgbValue, Color c) {
-
-		int maxDifference = 50;
-
-		double[] goalColor = new double[] { c.getRed(), c.getGreen(),
-				c.getBlue() };
-
-		double curDifference = 0;
-
-		for (int i = 0; i < 3; i++) {
-			curDifference += Math.abs(rgbValue[i] - goalColor[i]);
-
-			if (curDifference > maxDifference) {
-				return false;
-			}
-		}
-		return true;
+	public Circle[] getLatestCircles() {
+		return circlesFound;
 	}
 }

@@ -10,8 +10,6 @@ import org.opencv.core.Mat;
 @SuppressWarnings("serial")
 public class CircleDetectionPanel extends JPanel {
 
-	Mat webcamFeed;
-
 	public CircleDetectionPanel(int width, int height, String frameName) {
 		JFrame frame = new JFrame(frameName);
 

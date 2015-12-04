@@ -4,13 +4,15 @@
 	<classpathentry kind="src" path="pictures"/>
 	<classpathentry kind="src" path="OpenCV/sources/data"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/OpenCV">
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.USER_LIBRARY/OpenCV">
 		<attributes>
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="C:/Program Files (x86)/eclipse/opencv/build/java/x86"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/FRC Libs"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.USER_LIBRARY/FRC Libs"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JavaOCR"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Tess4J"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/OpenCV-Temp"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/eclipse/opencv/build/java/opencv-300.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
